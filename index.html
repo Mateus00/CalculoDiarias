@@ -1,0 +1,135 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Minhas Diárias</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+      body {
+        font-family: Arial;
+        text-align: center;
+        background: #f2f2f2;
+      }
+
+      .container {
+        background: white;
+        padding: 20px;
+        margin: 20px;
+        border-radius: 10px;
+      }
+
+      input,
+      button {
+        padding: 10px;
+        margin: 5px;
+        width: 80%;
+      }
+
+      button {
+        background: green;
+        color: white;
+        border: none;
+      }
+
+      .lista {
+        text-align: left;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <h2>💰 Controle de Diárias</h2>
+
+      <input type="date" id="data" />
+      <input type="number" id="valor" placeholder="Valor da diária" />
+
+      <button onclick="adicionar()">Adicionar</button>
+
+      <h3>Total: R$ <span id="total">0</span></h3>
+
+      <canvas id="grafico"></canvas>
+
+      <div class="lista" id="lista"></div>
+    </div>
+
+    <script>
+      let diarias = JSON.parse(localStorage.getItem("diarias")) || [];
+      let grafico;
+
+      function salvar() {
+        localStorage.setItem("diarias", JSON.stringify(diarias));
+      }
+
+      function adicionar() {
+        let data = document.getElementById("data").value;
+        let valor = document.getElementById("valor").value;
+
+        if (!data || !valor) {
+          alert("Preencha tudo!");
+          return;
+        }
+
+        diarias.push({ data, valor: parseFloat(valor) });
+        salvar();
+        mostrar();
+      }
+
+      function mostrar() {
+        let lista = document.getElementById("lista");
+        lista.innerHTML = "";
+
+        let total = 0;
+
+        diarias.forEach((d, i) => {
+          total += d.valor;
+
+          lista.innerHTML += `
+      <p>
+        📅 ${d.data} - R$ ${d.valor}
+        <button onclick="remover(${i})">❌</button>
+      </p>
+    `;
+        });
+
+        document.getElementById("total").innerText = total.toFixed(2);
+        atualizarGrafico();
+      }
+
+      function remover(index) {
+        diarias.splice(index, 1);
+        salvar();
+        mostrar();
+      }
+
+      function atualizarGrafico() {
+        let labels = diarias.map((d) => d.data);
+        let valores = diarias.map((d) => d.valor);
+
+        let ctx = document.getElementById("grafico").getContext("2d");
+
+        if (grafico) {
+          grafico.destroy();
+        }
+
+        grafico = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "Ganhos por dia",
+                data: valores,
+              },
+            ],
+          },
+        });
+      }
+
+      mostrar();
+    </script>
+  </body>
+</html>
